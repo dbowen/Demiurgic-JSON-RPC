@@ -212,7 +212,7 @@
     NSMutableData *connectionData = [connectionInfo objectForKey:@"data"];
     
     // Attempt to deserialize result
-    NSError *error;
+    NSError *error = nil;
     NSDictionary *jsonResult = [connectionData objectFromJSONDataWithParseOptions:JKParseOptionNone error:&error];
     if (error) {
         // Pass the error to the delegate if they care
@@ -224,7 +224,7 @@
     }
     
     // The JSON server passed back and error for the response
-    if (!error && [jsonResult objectForKey:@"error"] != nil && [[jsonResult objectForKey:@"error"] isKindOfClass:[NSDictionary dictionary]]) {
+    if (!error && [jsonResult objectForKey:@"error"] != nil && [[jsonResult objectForKey:@"error"] isKindOfClass:[NSDictionary class]]) {
         // Give the error to the delegate if they care
         if (delegate && [delegate respondsToSelector:@selector(jsonRPC:didFinishMethod:forId:withError:)]) {
             DSJSONRPCError *jsonRPCError = [DSJSONRPCError errorWithData:[jsonResult objectForKey:@"error"]];
