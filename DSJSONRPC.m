@@ -212,7 +212,7 @@
     NSMutableData *connectionData = [connectionInfo objectForKey:@"data"];
     
     // Attempt to deserialize result
-    NSError *error;
+    NSError *error = nil;
     NSDictionary *jsonResult = [connectionData objectFromJSONDataWithParseOptions:JKParseOptionNone error:&error];
     if (error) {
         // Pass the error to the delegate if they care
