@@ -100,8 +100,8 @@
     NSInteger aId = arc4random();
     
     // Setup the JSON-RPC call payload
-    NSArray *methodKeys = [NSArray arrayWithObjects:@"method", @"params", @"id", nil];
-    NSArray *methodObjs = [NSArray arrayWithObjects:methodName, methodParams, [NSNumber numberWithInt:aId], nil];
+    NSArray *methodKeys = [NSArray arrayWithObjects:@"jsonrpc", @"method", @"params", @"id", nil];
+    NSArray *methodObjs = [NSArray arrayWithObjects:@"2.0", methodName, methodParams, [NSNumber numberWithInt:aId], nil];
     NSDictionary *methodCall = [NSDictionary dictionaryWithObjects:methodObjs forKeys:methodKeys];
     
     // Attempt to serialize the call payload to a JSON string
@@ -224,10 +224,11 @@
     }
     
     // The JSON server passed back and error for the response
-    if (!error && [jsonResult objectForKey:@"error"] != nil) {
+    if (!error && [jsonResult objectForKey:@"error"] != nil && [[jsonResult objectForKey:@"error"] isKindOfClass:[NSDictionary dictionary]]) {
         // Give the error to the delegate if they care
         if (delegate && [delegate respondsToSelector:@selector(jsonRPC:didFinishMethod:forId:withError:)]) {
-            [delegate jsonRPC:self didFinishMethod:[connectionInfo objectForKey:@"method"] forId:[[connectionInfo objectForKey:@"id"] intValue] withError:[jsonResult objectForKey:@"error"]];
+            DSJSONRPCError *jsonRPCError = [DSJSONRPCError errorWithData:[jsonResult objectForKey:@"error"]];
+            [delegate jsonRPC:self didFinishMethod:[connectionInfo objectForKey:@"method"] forId:[[connectionInfo objectForKey:@"id"] intValue] withError:jsonRPCError];
         }
     }
     // Not error, give delegate the method result

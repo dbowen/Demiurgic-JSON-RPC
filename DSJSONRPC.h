@@ -38,6 +38,7 @@
 
 
 #import <Foundation/Foundation.h>
+#import "DSJSONRPCError.h"
 
 @class DSJSONRPC;
 
@@ -48,7 +49,7 @@
 typedef enum {
     DSJSONRPCNetworkError = 1,
     DSJSONRPCParseError = 2
-} DSJSONRPCError;
+} DSJSONRPCErrorType;
 
 /**
  *  Delegate used to provide information regarding web service calls made.
@@ -70,7 +71,7 @@ typedef enum {
  *  methodError will be the appropriate Objective-C object type based on the type set as the error on the server.
  *
 **/
-- (void)jsonRPC:(DSJSONRPC *)jsonRPC didFinishMethod:(NSStream *)methodName forId:(NSInteger)aId withError:(id)methodError;
+- (void)jsonRPC:(DSJSONRPC *)jsonRPC didFinishMethod:(NSStream *)methodName forId:(NSInteger)aId withError:(DSJSONRPCError *)methodError;
 
 /**
  *  Invoked when an error occurs with the connection or when the JSON payload can't be (de)serialized.
