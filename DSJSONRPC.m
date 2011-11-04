@@ -195,14 +195,15 @@
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
     NSNumber *connectionKey = [NSNumber numberWithInt:(int)connection];
     NSMutableDictionary *connectionInfo = [self._activeConnections objectForKey:connectionKey];
-    [self._activeConnections removeObjectForKey:connectionKey];
-    [connection release];
     
     if (delegate && [delegate respondsToSelector:@selector(jsonRPC:didFailMethod:forId:withError:)]) {
         NSError *aError = [NSError errorWithDomain:@"com.demiurgicsoftware.json-rpc" code:DSJSONRPCNetworkError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[error localizedDescription], NSLocalizedDescriptionKey, nil]];
         
-        [delegate jsonRPC:self didFailMethod:[connectionInfo objectForKey:@"name"] forId:[[connectionInfo objectForKey:@"id"] intValue] withError:aError];
+        [delegate jsonRPC:self didFailMethod:[connectionInfo objectForKey:@"method"] forId:[[connectionInfo objectForKey:@"id"] intValue] withError:aError];
     }
+    
+    [self._activeConnections removeObjectForKey:connectionKey];
+    [connection release];
 }
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {
