@@ -39,6 +39,7 @@
 
 #import <Foundation/Foundation.h>
 #import "DSJSONRPCError.h"
+#import "DSARCHelpers.h"
 
 @class DSJSONRPC;
 
@@ -68,7 +69,7 @@ typedef enum {
 /**
  *  Invoked when the method is completed and the error key is set in the response.
  *
- *  methodError will be the appropriate Objective-C object type based on the type set as the error on the server.
+ *  methodError is an Objective-C object which contains all information provided by the offical JSON-RPC error response structure.
  *
 **/
 - (void)jsonRPC:(DSJSONRPC *)jsonRPC didFinishMethod:(NSStream *)methodName forId:(NSInteger)aId withError:(DSJSONRPCError *)methodError;
@@ -84,14 +85,24 @@ typedef enum {
 @end
 
 
-@interface DSJSONRPC : NSObject {
-    id<DSJSONRPCDelegate> delegate;
-    
-@private
-    NSURL               *_serviceEndpoint;
-    NSDictionary        *_httpHeaders;
-    NSMutableDictionary *_activeConnections;
-}
+/**
+ *  Invoked when and error occurs or upon method completion.
+ *
+ *  If methodError is set, the error occured on the server.
+ *  methodError is an Objective-C object which contains all information provided by the offical JSON-RPC error response structure.
+ *
+ *  The internalError value is set when an error occurs with the connection or when the JSON payload can't be (de)serialized.
+ *
+ *  methodResult will be the appropriate Objective-C object type based on the type set as the result on the server.
+ *
+**/
+typedef void (^DSJSONRPCCompletionHandler)(NSString *methodName, NSInteger callId, id methodResult, DSJSONRPCError *methodError, NSError *internalError);
+
+
+@interface DSJSONRPC : NSObject
+
+@property (nonatomic, DS_WEAK) id<DSJSONRPCDelegate> delegate;
+
 - (id)initWithServiceEndpoint:(NSURL *)serviceEndpoint;
 - (id)initWithServiceEndpoint:(NSURL *)serviceEndpoint andHTTPHeaders:(NSDictionary *)httpHeaders;
 
@@ -99,5 +110,8 @@ typedef enum {
 - (NSInteger)callMethod:(NSString *)methodName;
 - (NSInteger)callMethod:(NSString *)methodName withParameters:(id)methodParams;
 
-@property (nonatomic, assign) id<DSJSONRPCDelegate> delegate;
+#pragma mark - Web Service Invocation Methods (Completion Handler Based)
+- (NSInteger)callMethod:(NSString *)methodName onCompletion:(DSJSONRPCCompletionHandler)completionHandler;
+- (NSInteger)callMethod:(NSString *)methodName withParameters:(id)methodParams onCompletion:(DSJSONRPCCompletionHandler)completionHandler;
+
 @end

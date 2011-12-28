@@ -2,7 +2,7 @@
  * DSJSONRPC.h
  *
  * Demiurgic JSON-RPC
- * Created by Derek Bowen on 10/20/2011.
+ * Created by Derek Bowen on 12/27/2011.
  * 
  * Copyright (c) 2011 Demiurgic Software, LLC
  * All rights reserved.
@@ -36,25 +36,30 @@
  *
  */
 
-#import <Foundation/Foundation.h>
-#import "DSARCHelpers.h"
+#ifndef __has_feature
+#define __has_feature(x) 0
+#endif
+#ifndef __has_extension
+#define __has_extension __has_feature
+#endif
 
-typedef enum {
-    JSONRPCParseError = -32700,
-    JSONRPCInvalidRequest = -32600,
-    JSONRPCMethodNotFound = -32601,
-    JSONRPCInvalidParams = -32602,
-    JSONRPCInternalError = -32603
-} JSONRPCErrorType;
+#if __has_feature(objc_arc) && __clang_major__ >= 3
+#define DS_ARC_ENABLED 1
+#endif
 
+#ifndef DS_ARC_ENABLED
+#define DS_STRONG           retain
+#define DS_WEAK             assign
+#define DS_RELEASE(X)       [X release], X = nil;
+#define DS_RETAIN(X)        [X retain];
+#define DS_AUTORELEASE(X)   [X autorelease];
+#define DS_SUPERDEALLOC()   [super dealloc];
 
-@interface DSJSONRPCError : NSObject
-
-@property (nonatomic, readonly)             NSInteger   code;
-@property (nonatomic, DS_STRONG, readonly)  NSString    *message;
-@property (nonatomic, DS_STRONG, readonly)  id          data;
-
-- (id)initWithErrorData:(NSDictionary *)errorData;
-+ (DSJSONRPCError *)errorWithData:(NSDictionary *)errorData;
-
-@end
+#else
+#define DS_STRONG           strong
+#define DS_WEAK             weak
+#define DS_RELEASE(X)
+#define DS_RETAIN(X)
+#define DS_AUTORELEASE(X)
+#define DS_SUPERDEALLOC()
+#endif
