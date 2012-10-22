@@ -234,6 +234,32 @@
     DS_RELEASE(connection)
 }
 
+// deal with self-signed certificates
+- (BOOL)connection:(NSURLConnection *)connection
+canAuthenticateAgainstProtectionSpace:(NSURLProtectionSpace *)protectionSpace
+{
+	return [protectionSpace.authenticationMethod
+			isEqualToString:NSURLAuthenticationMethodServerTrust];
+}
+
+- (void)connection:(NSURLConnection *)connection
+didReceiveAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge
+{
+	if ([challenge.protectionSpace.authenticationMethod
+		 isEqualToString:NSURLAuthenticationMethodServerTrust])
+	{
+		// we only trust our own domain
+		if ([challenge.protectionSpace.host isEqualToString:self._serviceEndpoint.host])
+		{
+			NSURLCredential *credential =
+            [NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust];
+			[challenge.sender useCredential:credential forAuthenticationChallenge:challenge];
+		}
+	}
+    
+	[challenge.sender continueWithoutCredentialForAuthenticationChallenge:challenge];
+}
+
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {
     // Get information about the connection
     NSNumber *connectionKey = [NSNumber numberWithInt:(int)connection];
