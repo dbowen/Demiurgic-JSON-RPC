@@ -115,6 +115,10 @@
     // Create call payload
     NSDictionary *methodCall = [NSDictionary dictionaryWithObjects:methodObjs forKeys:methodKeys];
     
+#ifdef DEBUG
+    NSLog(@"REQUEST:\n%@", methodCall);
+#endif
+    
     // Attempt to serialize the call payload to a JSON string
     NSError *error;
     NSData *postData = [methodCall JSONDataWithOptions:JKSerializeOptionNone error:&error];
@@ -234,12 +238,46 @@
     DS_RELEASE(connection)
 }
 
+// deal with self-signed certificates
+- (BOOL)connection:(NSURLConnection *)connection
+canAuthenticateAgainstProtectionSpace:(NSURLProtectionSpace *)protectionSpace
+{
+	return [protectionSpace.authenticationMethod
+			isEqualToString:NSURLAuthenticationMethodServerTrust];
+}
+
+- (void)connection:(NSURLConnection *)connection
+didReceiveAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge
+{
+	if ([challenge.protectionSpace.authenticationMethod
+		 isEqualToString:NSURLAuthenticationMethodServerTrust])
+	{
+		// we only trust our own domain
+		if ([challenge.protectionSpace.host isEqualToString:self._serviceEndpoint.host])
+		{
+			NSURLCredential *credential =
+            [NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust];
+			[challenge.sender useCredential:credential forAuthenticationChallenge:challenge];
+		}
+	}
+    
+	[challenge.sender continueWithoutCredentialForAuthenticationChallenge:challenge];
+}
+
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {
     // Get information about the connection
     NSNumber *connectionKey = [NSNumber numberWithInt:(int)connection];
     NSMutableDictionary *connectionInfo = [self._activeConnections objectForKey:connectionKey];
     NSMutableData *connectionData = [connectionInfo objectForKey:@"data"];
     DSJSONRPCCompletionHandler completionHandler = [connectionInfo objectForKey:@"completionHandler"];
+    
+    
+#ifdef DEBUG
+    NSString *responseString = [[NSString alloc] initWithData:connectionData
+                                                     encoding:NSUTF8StringEncoding];
+    NSLog(@"RESPONSE:\n%@", responseString);
+#endif
+
     
     // Attempt to deserialize result
     NSError *error = nil;
