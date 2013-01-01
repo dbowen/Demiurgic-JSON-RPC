@@ -4,22 +4,26 @@ Demiurgic JSON-RPC is a lightweight and easy to use wrapper for making JSON-RPC 
 
 We're working to provide better documentation for the API.  If you need assistance please feel free to contact us and we'll be glad to help!
 
-# Installation
+
+## Requirements
+---
+
+* iOS 5.0 or greater
+* XCode 4.4 or greater
+
+
+## Installation
+---
 
 1. In your XCode Project, add all the .h and .m files from the Source folder into your project. 
 2. Import *DSJSONRPC.h* in any file where you wish to make JSON-RPC web service calls.
 3. Starting consuming web services without all the hassle of managing the communication yourself!
 
-# ARC Support
 
-Version 1.1.0 of Demiurgic JSON-RPC now has support for ARC.  However, if you wish to continue using the 1.0.0 version, this can be done by adding the *-fno-objc-arc* flag to the following files:
+## Usage
+---
 
-* DSJSONRPC.m
-* JSONKit.m
-
-# Usage
-
-## Setting up the instance
+### Setting up the instance
 
 First import the header file *DSJSONRPC.h* in the file you'd like to do web service calls from.
 
@@ -38,7 +42,7 @@ Once its included, simply create a new instance of the class in one of two ways:
 		NSDictionary *customHeaders = [NSDictionary dictionaryWithObjectsAndKeys:@"MyApplication/1.00", @"User-Agent", nil];
 		DSJSONRPC *jsonRPC = [[DSJSONRPC alloc] initWithServiceEndpoint:[NSURL URLWithString:@"https://www.yourwebsite.com/MyWebservice.php" withHTTPHeaders:customHeaders];
 
-## Making a web service call
+### Making a web service call
 
 Demiurgic JSON-RPC can be used in one of two ways.  The first is to use a more traditional approach with delegates, or with completion handler blocks.  Using completion handlers is our recommendation for any new applications.
 
