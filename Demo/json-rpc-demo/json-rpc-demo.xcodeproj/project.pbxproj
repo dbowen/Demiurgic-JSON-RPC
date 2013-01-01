@@ -17,7 +17,6 @@
 		4AE33A8515B62051007268AE /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4AE33A8415B62051007268AE /* ViewController.m */; };
 		4AE33A9315B62085007268AE /* DSJSONRPC.m in Sources */ = {isa = PBXBuildFile; fileRef = 4AE33A8E15B62085007268AE /* DSJSONRPC.m */; };
 		4AE33A9415B62085007268AE /* DSJSONRPCError.m in Sources */ = {isa = PBXBuildFile; fileRef = 4AE33A9015B62085007268AE /* DSJSONRPCError.m */; };
-		4AE33A9515B62085007268AE /* JSONKit.m in Sources */ = {isa = PBXBuildFile; fileRef = 4AE33A9215B62085007268AE /* JSONKit.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -39,8 +38,6 @@
 		4AE33A8E15B62085007268AE /* DSJSONRPC.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DSJSONRPC.m; sourceTree = "<group>"; };
 		4AE33A8F15B62085007268AE /* DSJSONRPCError.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DSJSONRPCError.h; sourceTree = "<group>"; };
 		4AE33A9015B62085007268AE /* DSJSONRPCError.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DSJSONRPCError.m; sourceTree = "<group>"; };
-		4AE33A9115B62085007268AE /* JSONKit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSONKit.h; sourceTree = "<group>"; };
-		4AE33A9215B62085007268AE /* JSONKit.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JSONKit.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -117,8 +114,6 @@
 				4AE33A8E15B62085007268AE /* DSJSONRPC.m */,
 				4AE33A8F15B62085007268AE /* DSJSONRPCError.h */,
 				4AE33A9015B62085007268AE /* DSJSONRPCError.m */,
-				4AE33A9115B62085007268AE /* JSONKit.h */,
-				4AE33A9215B62085007268AE /* JSONKit.m */,
 			);
 			name = DSJSONRPC;
 			path = ../../../DSJSONRPC;
@@ -192,7 +187,6 @@
 				4AE33A8515B62051007268AE /* ViewController.m in Sources */,
 				4AE33A9315B62085007268AE /* DSJSONRPC.m in Sources */,
 				4AE33A9415B62085007268AE /* DSJSONRPCError.m in Sources */,
-				4AE33A9515B62085007268AE /* JSONKit.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -308,6 +302,7 @@
 				4AE33A8A15B62051007268AE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

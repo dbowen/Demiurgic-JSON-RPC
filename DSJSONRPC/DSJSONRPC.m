@@ -37,7 +37,8 @@
  */
 
 #import "DSJSONRPC.h"
-#import "JSONKit.h"
+
+#define DS_ERROR_LOGGING 1
 
 #ifdef __OBJC_GC__
 #error Demiurgic JSON-RPC does not support Objective-C Garbage Collection
@@ -101,27 +102,21 @@
     NSInteger aId = arc4random();
     
     // Setup the JSON-RPC call payload
-    NSArray *methodKeys = nil;
-    NSArray *methodObjs = nil;
+    NSDictionary *methodCall;
     if (methodParams) {
-        methodKeys = [NSArray arrayWithObjects:@"jsonrpc", @"method", @"params", @"id", nil];
-        methodObjs = [NSArray arrayWithObjects:@"2.0", methodName, methodParams, [NSNumber numberWithInt:aId], nil];
+        methodCall = @{ @"jsonrpc": @"2.0", @"method": methodName, @"params": methodParams, @"id": @(aId) };
     }
     else {
-        methodKeys = [NSArray arrayWithObjects:@"jsonrpc", @"method", @"id", nil];
-        methodObjs = [NSArray arrayWithObjects:@"2.0", methodName, [NSNumber numberWithInt:aId], nil];
+        methodCall = @{ @"jsonrpc": @"2.0", @"method": methodName, @"id": @(aId) };
     }
     
-    // Create call payload
-    NSDictionary *methodCall = [NSDictionary dictionaryWithObjects:methodObjs forKeys:methodKeys];
-    
-#ifdef DEBUG
-    NSLog(@"REQUEST:\n%@", methodCall);
+#if defined(DEBUG) && DS_ERROR_LOGGING == 1
+    NSLog(@"*** JSON-RPC REQUEST:\n%@", methodCall);
 #endif
     
     // Attempt to serialize the call payload to a JSON string
     NSError *error;
-    NSData *postData = [methodCall JSONDataWithOptions:JKSerializeOptionNone error:&error];
+    NSData *postData = [NSJSONSerialization dataWithJSONObject:methodCall options:0 error:&error];
     
     // TODO: Make this a parameter??
     if (error != nil) {
@@ -141,7 +136,7 @@
     // Create the JSON-RPC request
     NSMutableURLRequest *serviceRequest = [NSMutableURLRequest requestWithURL:self._serviceEndpoint];
     [serviceRequest setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-    [serviceRequest setValue:@"DSJSONRPC/1.0" forHTTPHeaderField:@"User-Agent"];
+    [serviceRequest setValue:@"DSJSONRPC/1.5" forHTTPHeaderField:@"User-Agent"];
     
     // Add custom HTTP headers
     for (id key in self._httpHeaders) {
@@ -156,7 +151,7 @@
     // Create dictionary to store information about the request so we can recall it later
     NSMutableDictionary *connectionInfo = [NSMutableDictionary dictionaryWithCapacity:3];
     [connectionInfo setObject:methodName forKey:@"method"];
-    [connectionInfo setObject:[NSNumber numberWithInt:aId] forKey:@"id"];
+    [connectionInfo setObject:@(aId) forKey:@"id"];
     if (completionHandler != nil) {
         DSJSONRPCCompletionHandler completionHandlerCopy = [completionHandler copy];
         [connectionInfo setObject:completionHandlerCopy forKey:@"completionHandler"];
@@ -170,55 +165,21 @@
 }
 
 
-#pragma mark - Runtime Method Invocation Handling
-
-- (NSMethodSignature *)methodSignatureForSelector:(SEL)aSelector {
-    // Determine if we handle the method signature
-    // If not, create one so it goes to forwardInvocation
-    NSMethodSignature *aMethodSignature;
-    if (!(aMethodSignature = [super methodSignatureForSelector:aSelector]))
-        aMethodSignature = [NSMethodSignature signatureWithObjCTypes:"@:@@@"];
-    
-    return aMethodSignature;
-}
-
-- (void)forwardInvocation:(NSInvocation *)anInvocation {
-    // Get method name from invocation
-    NSString *selectorName = NSStringFromSelector(anInvocation.selector);
-    NSString *methodName = [[selectorName componentsSeparatedByString:@":"] objectAtIndex:0];
-    
-    // Get reference to the first argument passed in
-    id methodParams;
-    [anInvocation getArgument:&methodParams atIndex:2];
-    
-    // If no parameters were given or its not a valid primative type, then pass in nil
-    if (methodParams == nil || !([methodParams isKindOfClass:[NSArray class]] || [methodParams isKindOfClass:[NSDictionary class]] || [methodParams isKindOfClass:[NSString class]] || [methodParams isKindOfClass:[NSNumber class]])) {
-        methodParams = nil;
-    }
-        
-    // Rebuild the invocation request and invoke it
-    [anInvocation setSelector:@selector(callMethod:withParameters:)];
-    [anInvocation setArgument:&methodName atIndex:2];
-    [anInvocation setArgument:&methodParams atIndex:3];
-    [anInvocation invokeWithTarget:self];
-}
-
-
 #pragma mark - NSURLConnection Delegate Methods
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
-    NSMutableDictionary *connectionInfo = [self._activeConnections objectForKey:[NSNumber numberWithInt:(int)connection]];
+    NSMutableDictionary *connectionInfo = [self._activeConnections objectForKey:@((int)connection)];
     [connectionInfo setObject:[NSMutableData data] forKey:@"data"];
 }
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
-    NSMutableDictionary *connectionInfo = [self._activeConnections objectForKey:[NSNumber numberWithInt:(int)connection]];
+    NSMutableDictionary *connectionInfo = [self._activeConnections objectForKey:@((int)connection)];
     NSMutableData *connectionData = [connectionInfo objectForKey:@"data"];
     [connectionData appendData:data];
 }
 
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
-    NSNumber *connectionKey = [NSNumber numberWithInt:(int)connection];
+    NSNumber *connectionKey = @((int)connection);
     NSMutableDictionary *connectionInfo = [self._activeConnections objectForKey:connectionKey];
     DSJSONRPCCompletionHandler completionHandler = [connectionInfo objectForKey:@"completionHandler"];
     
@@ -266,22 +227,22 @@ didReceiveAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {
     // Get information about the connection
-    NSNumber *connectionKey = [NSNumber numberWithInt:(int)connection];
+    NSNumber *connectionKey = @((int)connection);
     NSMutableDictionary *connectionInfo = [self._activeConnections objectForKey:connectionKey];
     NSMutableData *connectionData = [connectionInfo objectForKey:@"data"];
     DSJSONRPCCompletionHandler completionHandler = [connectionInfo objectForKey:@"completionHandler"];
     
     
-#ifdef DEBUG
+#if defined(DEBUG) && DS_ERROR_LOGGING == 1
     NSString *responseString = [[NSString alloc] initWithData:connectionData
                                                      encoding:NSUTF8StringEncoding];
-    NSLog(@"RESPONSE:\n%@", responseString);
+    NSLog(@"*** JSON-RPC RESPONSE:\n%@", responseString);
 #endif
 
     
     // Attempt to deserialize result
     NSError *error = nil;
-    NSDictionary *jsonResult = [connectionData objectFromJSONDataWithParseOptions:JKParseOptionNone error:&error];
+    NSDictionary *jsonResult = [NSJSONSerialization JSONObjectWithData:connectionData options:0 error:&error];
     if (error) {
         NSError *aError = [NSError errorWithDomain:@"com.demiurgicsoftware.json-rpc" code:DSJSONRPCParseError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[error localizedDescription], NSLocalizedDescriptionKey, nil]];
         
